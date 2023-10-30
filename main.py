@@ -1,75 +1,42 @@
 import numpy as np
+import matplotlib.pyplot as plt
+from keras.datasets import mnist
 
-class Network:
-    def __init__(self, layout) -> None:
-        self.layout = layout
+from network import Network
 
-        self.weights, self.biases = np.array([]), np.array([])
-        self.setup_layout(layout)
+# Utility functions 
 
-    def setup_layout(self, layout):
-        self.weights = [np.random.randn(layout[k], layout[k-1]) for k in range(1, len(layout))]
-        self.biases = [np.random.randn(k) for k in layout[1:]]
+def plot_mnist(train_X):
+    for i in range(9):
+        plt.subplot(330 + 1 + i)
+        plt.imshow(train_X[i], cmap=plt.get_cmap("Blues"))
+    plt.savefig("mnist.png")
 
-    def sigmoid(self, z):
-        return 1 / (1 + np.exp(-z))
+def to_output_vector(y):
+    vec = np.zeros((10, 1))
+    vec[y-1] = 1.0
+    return vec
 
-    def sigmoid_prime(self, z):
-        return self.sigmoid(z) * (1 - self.sigmoid(z))
-    
-    def forward_propogate(self, inputs):
-        w, a = [], []
-        for l in range(len(self.layout)-1):
-            w_l = np.dot(self.weights[l], inputs) + self.biases[l]
-            a_l = self.sigmoid(w_l)
-            w.append(w_l)
-            a.append(a_l)
-            inputs = a_l
-        return w, a
-    
-    def cost(self, output, true):
-        return np.square(true - output)
-    
-    def train(self, data, learning_rate, cycles):
-        cost = list()
-        for i in range(cycles):
-            # print(self.weights)
-            # print(self.biases)
-            # print()
-            w, a = self.forward_propogate(data[0])
 
-            cost.append(self.cost(a[-1], data[1]))
+# Training data for networks
 
-            error_L = (data[1] - a[-1]) * self.sigmoid_prime(w[-1])
-            errors = [error_L]
+XOR = [
+    (np.array([np.array([0]), np.array([0])]), 0),
+    (np.array([np.array([1]), np.array([1])]), 0),
+    (np.array([np.array([0]), np.array([1])]), 1),
+    (np.array([np.array([1]), np.array([0])]), 1)
+]
 
-            for l in range(len(self.weights)-2, -1, -1):
-                print((self.weights[l+1].T * errors[::-1][0]).shape, self.sigmoid_prime(w[l]).shape)
-                print(len(self.sigmoid_prime(w[l])))
-                print()
-                print(self.weights[l+1].T, errors[::-1][0], self.sigmoid_prime(w[l]))
-                error_l = (self.weights[l+1].T * errors[:-1]) * self.sigmoid_prime(w[l])
-                errors.append(error_l)
+(train_X, train_Y), (test_X, test_Y) = mnist.load_data()
 
-            # for l in range(len(self.layout)-2, -1, -1):
-            #     error_l = (self.weights[l].T * errors[:-1]) * self.sigmoid_prime(w[l])
-            #     print(error_l)
-            #     # error_l = np.multiply((self.weights[l].T * errors[:-1]), self.sigmoid_prime(w[l]))
-            #     errors.append(error_l)
 
-            # print(errors)
-            
-            for l in range(len(self.weights)):
-                self.weights[l] = self.weights[l] - (learning_rate * errors[::-1][l] * a[l]).T
-            
-            for l in range(len(self.biases)):
-                self.biases[l] = self.biases[l] - (learning_rate * errors[::-1][l])
-        
-        return cost
+# Clean up data
+tdata = [(np.reshape(inp, (784, 1)), to_output_vector(y)) for inp, y in zip(train_X, train_Y)]
 
-net = Network(np.array([2, 3, 1]))
 
-data = [(1, 1), 0]
+# train xor net
+xor_net = Network([2, 3, 1])
+xor_net.train(XOR, 1, 50000, 0.1, "xor_error", 100)
 
-cost = net.train(data, 0.1, 1)
-
+digit_net = Network([784, 30, 10])
+digit_net.train(tdata, 10, 30, 3.0, "mnist_error", 1)
