@@ -8,7 +8,7 @@ I carried out 50000 training cycles, calculating the error in my network every 1
 
 ![image](xor_error.png)
 
-Showing my network to be accurate to over 99.88%.
+Showing my network to be accurate to over 99.86%.
 
 Knowing my program to be correct in function, I trained a net to recognise 28 * 28 bitmap pixel images of hand drawn digits from the MNIST dataset. A sample of digits from the dataset:
 
@@ -18,4 +18,4 @@ With batches of 10 items and 30 training iterations, the net's progress through 
 
 ![image](mnist_error.png)
 
-Meaning it was able to achieve an accuracy greater than 96%.
+Meaning it was able to achieve an accuracy greater than 95%.
